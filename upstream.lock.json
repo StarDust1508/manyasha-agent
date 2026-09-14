@@ -3,6 +3,7 @@
   "repository": "https://github.com/NousResearch/hermes-agent",
   "commit": "5eb99eb2844b22ebb723711b8e6a0bbb80bb5f04",
   "license": "MIT",
-  "status": "candidate_not_yet_vendored",
-  "decision": "The prototype validates the Manyasha product boundary before adapting the pinned engine. It does not modify the user's live Hermes installation."
+  "status": "integrated_as_git_submodule",
+  "version": "0.21.2",
+  "decision": "The pinned engine is integrated under vendor/hermes-agent and runs with a separate HERMES_HOME. The user's live Hermes installation is not modified."
 }

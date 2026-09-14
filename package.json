@@ -7,9 +7,13 @@
     "manyasha": "./src/cli.mjs"
   },
   "scripts": {
-    "test": "node --test",
+    "setup:hermes": "uv venv .runtime/hermes-venv --python 3.11 && uv pip install --python .runtime/hermes-venv/bin/python -e vendor/hermes-agent",
+    "test": "node --test test/*.test.mjs",
     "demo": "node src/cli.mjs compare --profile demo/profile --left demo/input/contract-a.txt --right demo/input/contract-b.txt --out demo/comparison.md --allow-read --allow-write",
-    "gui": "node src/cli.mjs gui --profile demo/profile --port 8787"
+    "gui": "node src/cli.mjs gui --profile demo/profile --port 8787",
+    "hermes:run": "node scripts/pinned-hermes.mjs run",
+    "hermes:dashboard": "node scripts/pinned-hermes.mjs dashboard",
+    "hermes:sessions": "node scripts/pinned-hermes.mjs sessions"
   },
   "engines": {
     "node": ">=22"

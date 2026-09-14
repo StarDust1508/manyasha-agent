@@ -1,3 +1,6 @@
 node_modules/
 demo/profile/
+.runtime/
+demo/hermes-profile/*
+!demo/hermes-profile/config.yaml
 .DS_Store
