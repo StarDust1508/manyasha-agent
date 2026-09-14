@@ -1,0 +1,17 @@
+{
+  "name": "manyasha-agent-prototype",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "manyasha": "./src/cli.mjs"
+  },
+  "scripts": {
+    "test": "node --test",
+    "demo": "node src/cli.mjs compare --profile demo/profile --left demo/input/contract-a.txt --right demo/input/contract-b.txt --out demo/comparison.md --allow-read --allow-write",
+    "gui": "node src/cli.mjs gui --profile demo/profile --port 8787"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
