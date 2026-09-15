@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 import path from "node:path";
+import os from "node:os";
 import { compareFiles, ensureProfile, setProvider } from "./core.mjs";
 import { startGui } from "./gui.mjs";
 
 const args = process.argv.slice(2);
 const command = args[0] || "help";
 const value = (name, fallback) => { const index = args.indexOf(name); return index >= 0 ? args[index + 1] : fallback; };
-const profileDir = path.resolve(value("--profile", ".manyasha-profile"));
+const dataRoot = process.env.MANYASHA_DATA_DIR || path.join(os.homedir(), "Library", "Application Support", "Manyasha");
+const defaultProfile = process.env.MANYASHA_PROFILE_DIR || path.join(dataRoot, "profile");
+const profileDir = path.resolve(value("--profile", defaultProfile));
 
 try {
   if (command === "setup") {

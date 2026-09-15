@@ -1,0 +1,21 @@
+model:
+  provider: navy
+  default: gpt-5.6-terra
+  base_url: https://api.navy/v1
+providers:
+  navy:
+    name: Navy
+    base_url: https://api.navy/v1
+    default_model: gpt-5.6-terra
+    key_cmd: node "$MANYASHA_AGENT_ROOT/scripts/navy-key.mjs"
+    transport: chat_completions
+approvals:
+  mode: manual
+  single_query_mode: deny
+  unattended_mode: deny
+security:
+  redact_secrets: true
+display:
+  file_mutation_verifier: true
+memory:
+  provider: ""

@@ -2,14 +2,16 @@
 import { mkdir, readFile, realpath, writeFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import path from "node:path";
+import os from "node:os";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const runtime = path.join(root, ".runtime", "hermes-venv", "bin", "hermes");
-const hermesHome = path.join(root, "demo", "hermes-profile");
-const isolatedHome = path.join(root, ".runtime", "hermes-home");
-const workspace = path.join(root, "demo", "hermes-workspace");
+const dataRoot = path.resolve(process.env.MANYASHA_DATA_DIR || path.join(os.homedir(), "Library", "Application Support", "Manyasha"));
+const hermesHome = path.resolve(process.env.MANYASHA_HERMES_HOME || path.join(dataRoot, "hermes-profile"));
+const isolatedHome = path.resolve(process.env.MANYASHA_ISOLATED_HOME || path.join(dataRoot, "hermes-home"));
+const workspace = path.resolve(process.env.MANYASHA_WORKSPACE || path.join(root, "demo", "hermes-workspace"));
 const originalHome = process.env.HOME || "";
 
 function dotenvValue(source, key) {
@@ -24,8 +26,13 @@ async function providerEnvironment() {
   const sourcePath = process.env.MANYASHA_NAVY_ENV_SOURCE;
   if (!sourcePath) throw new Error("MANYASHA_NAVY_ENV_SOURCE_required");
   const source = await readFile(path.resolve(sourcePath), "utf8");
-  const apiKey = dotenvValue(source, "OPENAI_API_KEY");
-  const baseUrl = dotenvValue(source, "OPENAI_BASE_URL");
+  let apiKey = dotenvValue(source, "OPENAI_API_KEY");
+  let baseUrl = dotenvValue(source, "OPENAI_BASE_URL");
+  if (source.trimStart().startsWith("{")) {
+    const parsed = JSON.parse(source);
+    apiKey = String(parsed?.provider?.navy?.options?.apiKey || "");
+    baseUrl = String(parsed?.provider?.navy?.options?.baseURL || "");
+  }
   if (!apiKey || !baseUrl) throw new Error("Navy_provider_values_missing");
   if (new URL(baseUrl).origin !== "https://api.navy") throw new Error("unexpected_provider_origin");
   // The named Hermes provider obtains the short-lived value through key_cmd.
@@ -34,7 +41,7 @@ async function providerEnvironment() {
   return { MANYASHA_NAVY_ENV_SOURCE: sourcePath, MANYASHA_AGENT_ROOT: root };
 }
 
-async function run(args, extraEnv = {}) {
+async function run(args, extraEnv = {}, interactive = false) {
   await mkdir(isolatedHome, { recursive: true, mode: 0o700 });
   let executable = runtime;
   let executableArgs = args;
@@ -69,7 +76,7 @@ async function run(args, extraEnv = {}) {
       HERMES_HOME: hermesHome,
       HOME: isolatedHome,
       HERMES_WRITE_SAFE_ROOT: workspace,
-      HERMES_INTERACTIVE: "0",
+      HERMES_INTERACTIVE: interactive ? "1" : "0",
     },
   });
   const code = await new Promise((resolve, reject) => { child.once("error", reject); child.once("exit", resolve); });
@@ -84,10 +91,16 @@ if (command === "run") {
     "--provider", "navy", "--model", "gpt-5.6-terra", "--toolsets", "file",
     "--in", workspace, "--ignore-rules", "--run-budget", "180", "--max-turns", "10",
   ], provider);
+} else if (command === "chat") {
+  const provider = await providerEnvironment();
+  await run([
+    "chat", "--provider", "navy", "--model", "gpt-5.6-terra", "--toolsets", "file",
+    "--in", workspace, "--ignore-rules", "--run-budget", "180", "--max-turns", "20",
+  ], provider, true);
 } else if (command === "dashboard") {
   await run(["dashboard", "--host", "127.0.0.1", "--port", "8788", "--isolated", "--no-open", "--skip-build"]);
 } else if (command === "sessions") {
   await run(["sessions", "list"]);
 } else {
-  throw new Error("command_must_be_run_dashboard_or_sessions");
+  throw new Error("command_must_be_chat_run_dashboard_or_sessions");
 }
