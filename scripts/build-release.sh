@@ -22,5 +22,5 @@ cp -R "$PACKAGE_ROOT/vendor/hermes-agent/hermes_cli/web_dist/." "$STAGE_DIR/runt
 chmod 0755 "$STAGE_DIR/scripts/install-macos.sh" "$STAGE_DIR/bin/manyasha" "$STAGE_DIR/bin/manyasha-hermes"
 rm -f "$ARCHIVE"
 (cd "$OUTPUT_DIR" && /usr/bin/zip -qry "$(basename "$ARCHIVE")" "$(basename "$STAGE_DIR")")
-shasum -a 256 "$ARCHIVE" > "$ARCHIVE.sha256"
+(cd "$OUTPUT_DIR" && shasum -a 256 "$(basename "$ARCHIVE")" > "$(basename "$ARCHIVE").sha256")
 printf '%s\n' "$ARCHIVE"
