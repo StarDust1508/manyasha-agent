@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import path from "node:path";
 import os from "node:os";
-import { compareFiles, ensureProfile, setProvider } from "./core.mjs";
+import { compareFiles, configureManagedAccess, ensureProfile, listSessions, runConversationTask, setProvider } from "./core.mjs";
 import { startGui } from "./gui.mjs";
 
 const args = process.argv.slice(2);
@@ -18,6 +18,9 @@ try {
   } else if (command === "provider") {
     const profile = await setProvider(profileDir, value("--set", ""));
     console.log(`Источник модели: ${profile.provider}. История и сессии сохранены.`);
+  } else if (command === "managed") {
+    const profile = await configureManagedAccess(profileDir, value("--server", ""), value("--token", ""));
+    console.log(`Доступ организаторов подключён: ${profile.managedAccess.serverUrl}. Токен сохранён только в локальном профиле.`);
   } else if (command === "compare") {
     const workspaceDir = path.resolve(value("--workspace", process.cwd()));
     const session = await compareFiles({
@@ -30,12 +33,23 @@ try {
       allowWrite: args.includes("--allow-write"),
     });
     console.log(`Готово: ${session.changes} отличий. Результат: ${session.output}`);
+  } else if (command === "chat") {
+    const session = await runConversationTask({
+      profileDir,
+      prompt: value("--prompt", ""),
+      sessionId: value("--session", ""),
+    });
+    console.log(session.messages.at(-1)?.content || "Ответ не получен");
+    console.log(`\nСессия: ${session.id}`);
+  } else if (command === "sessions") {
+    const sessions = await listSessions(profileDir);
+    for (const session of sessions) console.log(`${session.id}\t${session.kind}\t${session.status || "completed"}\t${session.title || session.output || ""}`);
   } else if (command === "gui") {
     const port = Number(value("--port", "8787"));
     await startGui(profileDir, port);
     console.log(`GUI Маняши: http://127.0.0.1:${port}`);
   } else {
-    console.log("Маняша 0.1\n\nsetup --profile DIR [--provider managed|byok|local]\nprovider --profile DIR --set managed|byok|local\ncompare --profile DIR --workspace DIR --left FILE --right FILE --out FILE --allow-read --allow-write\ngui --profile DIR [--port 8787]");
+    console.log("Маняша 0.2\n\nsetup --profile DIR [--provider managed|byok|local]\nprovider --profile DIR --set managed|byok|local\nmanaged --profile DIR --server URL --token TOKEN\nchat --profile DIR --prompt TEXT [--session UUID]\nsessions --profile DIR\ncompare --profile DIR --workspace DIR --left FILE --right FILE --out FILE --allow-read --allow-write\ngui --profile DIR [--port 8787]");
   }
 } catch (error) {
   console.error(`Маняша: ${error instanceof Error ? error.message : "command_failed"}`);

@@ -4,8 +4,8 @@ set -eu
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 PACKAGE_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 OUTPUT_DIR=${1:-"$PACKAGE_ROOT/dist"}
-STAGE_DIR="$OUTPUT_DIR/Manyasha-0.1.0-macos"
-ARCHIVE="$OUTPUT_DIR/Manyasha-0.1.0-macos.zip"
+STAGE_DIR="$OUTPUT_DIR/Manyasha-0.2.0-macos"
+ARCHIVE="$OUTPUT_DIR/Manyasha-0.2.0-macos.zip"
 
 case "$OUTPUT_DIR" in ""|"/"|"$HOME") echo "Отказ: небезопасная папка выпуска" >&2; exit 3 ;; esac
 mkdir -p "$OUTPUT_DIR"
