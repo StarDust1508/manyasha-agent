@@ -38,7 +38,8 @@ export async function startGui(profileDir, port = 8787) {
     try {
       const url = new URL(req.url || "/", `http://127.0.0.1:${port}`);
       if (req.method === "GET" && url.pathname === "/api/state") {
-        const [profile, sessions, modelConfigured] = await Promise.all([ensureProfile(profileDir), listSessions(profileDir), loadNavyProvider().then(() => true).catch(() => false)]);
+        const [profile, sessions] = await Promise.all([ensureProfile(profileDir), listSessions(profileDir)]);
+        const modelConfigured = profile.managedAccess?.status === "ready" || await loadNavyProvider().then(() => true).catch(() => false);
         return json(res, 200, { profile: { name: profile.name, provider: profile.provider }, sessions, modelConfigured });
       }
       if (req.method === "POST" && url.pathname === "/api/chat") {
