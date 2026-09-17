@@ -24,6 +24,7 @@ jobs:
         run: npm test
       - name: Build bundled Hermes web UI
         shell: bash
+        working-directory: vendor/hermes-agent
         run: |
           npm ci --workspace web --include-workspace-root
           npm run build --workspace web
