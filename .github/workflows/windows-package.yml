@@ -1,0 +1,49 @@
+name: Windows package acceptance
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - codex/manyasha-agent-production-20260917
+
+jobs:
+  windows-install:
+    runs-on: windows-2022
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: vendor/hermes-agent/package-lock.json
+      - uses: astral-sh/setup-uv@v6
+      - name: Test Manyasha shell
+        run: npm test
+      - name: Build bundled Hermes web UI
+        shell: bash
+        run: |
+          npm ci --workspace web --include-workspace-root
+          npm run build --workspace web
+      - name: Build Windows archive
+        shell: powershell
+        run: .\scripts\build-release-windows.ps1 -OutputDir "$env:RUNNER_TEMP\release"
+      - name: Install archive on a clean prefix
+        shell: powershell
+        run: |
+          $Archive = Get-ChildItem "$env:RUNNER_TEMP\release\Manyasha-0.2.0-windows.zip"
+          $Unpacked = "$env:RUNNER_TEMP\unpacked"
+          Expand-Archive -Path $Archive.FullName -DestinationPath $Unpacked
+          $Package = Join-Path $Unpacked "Manyasha-0.2.0-windows"
+          $env:MANYASHA_DATA_DIR = "$env:RUNNER_TEMP\profile"
+          & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Package "scripts\install-windows.ps1") -Prefix "$env:RUNNER_TEMP\installed\app"
+          & "$env:RUNNER_TEMP\installed\app\bin\manyasha.cmd" sessions
+          if (-not (Test-Path "$env:RUNNER_TEMP\profile\profile\profile.json")) { throw "Профиль не создан" }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Manyasha-0.2.0-windows
+          path: |
+            ${{ runner.temp }}\release\Manyasha-0.2.0-windows.zip
+            ${{ runner.temp }}\release\Manyasha-0.2.0-windows.zip.sha256

@@ -7,7 +7,10 @@ import { startGui } from "./gui.mjs";
 const args = process.argv.slice(2);
 const command = args[0] || "help";
 const value = (name, fallback) => { const index = args.indexOf(name); return index >= 0 ? args[index + 1] : fallback; };
-const dataRoot = process.env.MANYASHA_DATA_DIR || path.join(os.homedir(), "Library", "Application Support", "Manyasha");
+const platformDataRoot = process.platform === "win32"
+  ? path.join(process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local"), "Manyasha")
+  : path.join(os.homedir(), "Library", "Application Support", "Manyasha");
+const dataRoot = process.env.MANYASHA_DATA_DIR || platformDataRoot;
 const defaultProfile = process.env.MANYASHA_PROFILE_DIR || path.join(dataRoot, "profile");
 const profileDir = path.resolve(value("--profile", defaultProfile));
 

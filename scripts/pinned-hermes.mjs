@@ -7,8 +7,11 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const runtime = path.join(root, ".runtime", "hermes-venv", "bin", "hermes");
-const dataRoot = path.resolve(process.env.MANYASHA_DATA_DIR || path.join(os.homedir(), "Library", "Application Support", "Manyasha"));
+const runtime = path.join(root, ".runtime", "hermes-venv", process.platform === "win32" ? "Scripts" : "bin", process.platform === "win32" ? "hermes.exe" : "hermes");
+const platformDataRoot = process.platform === "win32"
+  ? path.join(process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local"), "Manyasha")
+  : path.join(os.homedir(), "Library", "Application Support", "Manyasha");
+const dataRoot = path.resolve(process.env.MANYASHA_DATA_DIR || platformDataRoot);
 const hermesHome = path.resolve(process.env.MANYASHA_HERMES_HOME || path.join(dataRoot, "hermes-profile"));
 const isolatedHome = path.resolve(process.env.MANYASHA_ISOLATED_HOME || path.join(dataRoot, "hermes-home"));
 const workspace = path.resolve(process.env.MANYASHA_WORKSPACE || path.join(root, "demo", "hermes-workspace"));
