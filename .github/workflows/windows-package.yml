@@ -42,6 +42,12 @@ jobs:
           & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Package "scripts\install-windows.ps1") -Prefix "$env:RUNNER_TEMP\installed\app"
           & "$env:RUNNER_TEMP\installed\app\bin\manyasha.cmd" sessions
           if (-not (Test-Path "$env:RUNNER_TEMP\profile\profile\profile.json")) { throw "Profile was not created" }
+          $TaskDir = "$env:RUNNER_TEMP\instrument-task"
+          New-Item -ItemType Directory -Path $TaskDir | Out-Null
+          Set-Content -Path (Join-Path $TaskDir "before.txt") -Value "Deadline: Friday`nOwner: Legal" -Encoding ascii
+          Set-Content -Path (Join-Path $TaskDir "after.txt") -Value "Deadline: Monday`nOwner: Product" -Encoding ascii
+          & "$env:RUNNER_TEMP\installed\app\bin\manyasha.cmd" compare --profile "$env:RUNNER_TEMP\profile\profile" --workspace $TaskDir --left before.txt --right after.txt --out result.md --allow-read --allow-write
+          if (-not (Test-Path (Join-Path $TaskDir "result.md"))) { throw "Installed agent did not complete a new instrument task" }
       - uses: actions/upload-artifact@v4
         with:
           name: Manyasha-0.2.0-windows
