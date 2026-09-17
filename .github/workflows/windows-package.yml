@@ -41,7 +41,7 @@ jobs:
           $env:MANYASHA_DATA_DIR = "$env:RUNNER_TEMP\profile"
           & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $Package "scripts\install-windows.ps1") -Prefix "$env:RUNNER_TEMP\installed\app"
           & "$env:RUNNER_TEMP\installed\app\bin\manyasha.cmd" sessions
-          if (-not (Test-Path "$env:RUNNER_TEMP\profile\profile\profile.json")) { throw "Профиль не создан" }
+          if (-not (Test-Path "$env:RUNNER_TEMP\profile\profile\profile.json")) { throw "Profile was not created" }
       - uses: actions/upload-artifact@v4
         with:
           name: Manyasha-0.2.0-windows
