@@ -29,6 +29,13 @@ cp "$PACKAGE_ROOT/scripts/navy-key.mjs" "$PACKAGE_ROOT/scripts/pinned-hermes.mjs
 cp "$PACKAGE_ROOT/bin/manyasha" "$PACKAGE_ROOT/bin/manyasha-hermes" "$INSTALL_ROOT/bin/"
 cp "$PACKAGE_ROOT/package.json" "$PACKAGE_ROOT/upstream.lock.json" "$PACKAGE_ROOT/README.md" "$INSTALL_ROOT/"
 chmod 0755 "$INSTALL_ROOT/bin/manyasha" "$INSTALL_ROOT/bin/manyasha-hermes"
+# A ZIP downloaded by a browser can propagate macOS quarantine to copied shell
+# wrappers. The user has explicitly invoked this installer, so clear the
+# attribute only from the two installed launchers; source and provider files
+# remain untouched.
+if command -v xattr >/dev/null 2>&1; then
+  xattr -d com.apple.quarantine "$INSTALL_ROOT/bin/manyasha" "$INSTALL_ROOT/bin/manyasha-hermes" 2>/dev/null || true
+fi
 
 if [ ! -x "$INSTALL_ROOT/.runtime/hermes-venv/bin/python" ]; then
   uv venv "$INSTALL_ROOT/.runtime/hermes-venv" --python 3.11
@@ -61,5 +68,5 @@ if [ ! -f "$DATA_ROOT/hermes-profile/config.yaml" ]; then
   chmod 0600 "$DATA_ROOT/hermes-profile/config.yaml"
 fi
 
-"$INSTALL_ROOT/bin/manyasha" setup
+node "$INSTALL_ROOT/src/cli.mjs" setup
 printf '%s\n' "Маняша установлена: $INSTALL_ROOT" "Команда: $INSTALL_ROOT/bin/manyasha" "Hermes TUI/GUI: $INSTALL_ROOT/bin/manyasha-hermes"

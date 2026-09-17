@@ -4,7 +4,7 @@
 
 1. Проверьте файл `Manyasha-0.2.0-macos.zip.sha256`.
 2. Распакуйте архив.
-3. Запустите `scripts/install-macos.sh` из распакованной папки.
+3. Из распакованной папки выполните `sh scripts/install-macos.sh`.
 4. Установщик проверит Node.js 22+, `uv` и Git, затем получит Hermes ровно на commit из `upstream.lock.json`.
 5. Запустите разговорный интерфейс: `~/Library/Application Support/Manyasha/app/bin/manyasha gui`.
 
