@@ -9,14 +9,14 @@ $DataRoot = if ($env:MANYASHA_DATA_DIR) { $env:MANYASHA_DATA_DIR } else { Join-P
 $InstallRoot = if ($Prefix) { $Prefix } elseif ($env:MANYASHA_INSTALL_PREFIX) { $env:MANYASHA_INSTALL_PREFIX } else { Join-Path $DataRoot "app" }
 
 if (-not $InstallRoot -or $InstallRoot -eq [System.IO.Path]::GetPathRoot($InstallRoot) -or $InstallRoot -eq $HOME) {
-  throw "Отказ: небезопасный путь установки"
+  throw "Refusing unsafe installation path"
 }
 
 foreach ($Command in @("node", "uv", "git")) {
-  if (-not (Get-Command $Command -ErrorAction SilentlyContinue)) { throw "Нужна команда $Command" }
+  if (-not (Get-Command $Command -ErrorAction SilentlyContinue)) { throw "Required command not found: $Command" }
 }
 $NodeMajor = [int]((node -p "Number(process.versions.node.split('.')[0])").Trim())
-if ($NodeMajor -lt 22) { throw "Нужен Node.js 22 или новее" }
+if ($NodeMajor -lt 22) { throw "Node.js 22 or newer is required" }
 
 foreach ($Relative in @("src", "scripts", "bin", "config", ".runtime")) {
   New-Item -ItemType Directory -Force -Path (Join-Path $InstallRoot $Relative) | Out-Null
@@ -34,14 +34,14 @@ $Python = Join-Path $InstallRoot ".runtime\hermes-venv\Scripts\python.exe"
 if (-not (Test-Path $Python)) { uv venv (Join-Path $InstallRoot ".runtime\hermes-venv") --python 3.11 }
 $HermesCheckout = Join-Path $InstallRoot "vendor\hermes-agent"
 if (-not (Test-Path (Join-Path $HermesCheckout ".git"))) {
-  if (Test-Path $HermesCheckout) { throw "Путь основы занят неизвестными файлами" }
+  if (Test-Path $HermesCheckout) { throw "Hermes checkout path contains unknown files" }
   New-Item -ItemType Directory -Force -Path (Split-Path -Parent $HermesCheckout) | Out-Null
   $HermesSource = if ($env:MANYASHA_HERMES_SOURCE) { $env:MANYASHA_HERMES_SOURCE } else { "https://github.com/NousResearch/hermes-agent.git" }
   git clone --no-hardlinks $HermesSource $HermesCheckout
 }
 git -C $HermesCheckout checkout --detach 5eb99eb2844b22ebb723711b8e6a0bbb80bb5f04
 $PinnedCommit = (git -C $HermesCheckout rev-parse HEAD).Trim()
-if ($PinnedCommit -ne "5eb99eb2844b22ebb723711b8e6a0bbb80bb5f04") { throw "Не совпал закреплённый commit Hermes" }
+if ($PinnedCommit -ne "5eb99eb2844b22ebb723711b8e6a0bbb80bb5f04") { throw "Pinned Hermes commit does not match" }
 $BundledWeb = Join-Path $PackageRoot "runtime-assets\hermes-web"
 if (Test-Path (Join-Path $BundledWeb "index.html")) {
   $HermesWeb = Join-Path $HermesCheckout "hermes_cli\web_dist"
@@ -62,6 +62,6 @@ if (-not (($UserPath -split ';') -contains $BinPath)) {
   $NextPath = if ($UserPath) { "$UserPath;$BinPath" } else { $BinPath }
   [Environment]::SetEnvironmentVariable("Path", $NextPath, "User")
 }
-Write-Host "Маняша установлена: $InstallRoot"
-Write-Host "Команда: $BinPath\manyasha.cmd"
-Write-Host "Откройте новый PowerShell и выполните: manyasha gui"
+Write-Host "Manyasha installed: $InstallRoot"
+Write-Host "Command: $BinPath\manyasha.cmd"
+Write-Host "Open a new PowerShell window and run: manyasha gui"

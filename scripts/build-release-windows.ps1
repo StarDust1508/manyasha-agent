@@ -9,7 +9,7 @@ if (-not $OutputDir) { $OutputDir = Join-Path $PackageRoot "dist" }
 $OutputDir = [System.IO.Path]::GetFullPath($OutputDir)
 $StageDir = Join-Path $OutputDir "Manyasha-0.2.0-windows"
 $Archive = Join-Path $OutputDir "Manyasha-0.2.0-windows.zip"
-if ($OutputDir -eq [System.IO.Path]::GetPathRoot($OutputDir) -or $OutputDir -eq $HOME) { throw "Отказ: небезопасная папка выпуска" }
+if ($OutputDir -eq [System.IO.Path]::GetPathRoot($OutputDir) -or $OutputDir -eq $HOME) { throw "Refusing unsafe release directory" }
 New-Item -ItemType Directory -Force -Path $OutputDir | Out-Null
 Remove-Item -LiteralPath $StageDir -Recurse -Force -ErrorAction SilentlyContinue
 foreach ($Relative in @("src", "scripts", "bin", "config", "docs", "runtime-assets\hermes-web")) {
@@ -22,7 +22,7 @@ Copy-Item (Join-Path $PackageRoot "config\hermes-config.yaml") (Join-Path $Stage
 foreach ($Name in @("package.json", "upstream.lock.json", "README.md", "THIRD_PARTY_NOTICES.md", "SECURITY.md")) { Copy-Item (Join-Path $PackageRoot $Name) $StageDir -Force }
 Copy-Item (Join-Path $PackageRoot "docs\*") (Join-Path $StageDir "docs") -Recurse -Force
 $WebRoot = Join-Path $PackageRoot "vendor\hermes-agent\hermes_cli\web_dist"
-if (-not (Test-Path (Join-Path $WebRoot "index.html"))) { throw "Сначала соберите проверенный Hermes Web UI" }
+if (-not (Test-Path (Join-Path $WebRoot "index.html"))) { throw "Build the verified Hermes Web UI first" }
 Copy-Item (Join-Path $WebRoot "*") (Join-Path $StageDir "runtime-assets\hermes-web") -Recurse -Force
 Remove-Item -LiteralPath $Archive -Force -ErrorAction SilentlyContinue
 Compress-Archive -Path $StageDir -DestinationPath $Archive -CompressionLevel Optimal
